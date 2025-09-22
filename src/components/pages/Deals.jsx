@@ -173,8 +173,9 @@ const getContactName = (contactId) => {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
+<div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-slate-800">Deals Pipeline</h1>
+        <Button variant="primary" onClick={() => handleOpenModal()}>
           <ApperIcon name="Plus" size={16} className="mr-2" />
           Add Deal
         </Button>
