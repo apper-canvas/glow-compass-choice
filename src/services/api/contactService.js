@@ -1,7 +1,6 @@
 import { toast } from 'react-toastify';
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
 export const contactService = {
   async getAll() {
     try {
@@ -15,21 +14,24 @@ export const contactService = {
 
       const params = {
         fields: [
+          {"field": {"Name": "Id"}},
           {"field": {"Name": "Name"}},
-          {"field": {"Name": "first_name_c"}},
-          {"field": {"Name": "last_name_c"}},
-          {"field": {"Name": "email_c"}},
-          {"field": {"Name": "phone_c"}},
-          {"field": {"Name": "company_c"}},
-          {"field": {"Name": "status_c"}},
-          {"field": {"Name": "created_at_c"}},
-          {"field": {"Name": "last_activity_c"}}
+          {"field": {"Name": "Email"}},
+          {"field": {"Name": "Phone"}},
+          {"field": {"Name": "Company"}},
+          {"field": {"Name": "Position"}},
+          {"field": {"Name": "Status"}},
+          {"field": {"Name": "Source"}},
+          {"field": {"Name": "Notes"}},
+          {"field": {"Name": "CreatedDate"}},
+          {"field": {"Name": "ModifiedDate"}}
         ],
-        orderBy: [{"fieldName": "Id", "sorttype": "DESC"}]
+        orderBy: [{"fieldName": "CreatedDate", "sorttype": "DESC"}],
+        pagingInfo: {"limit": 100, "offset": 0}
       };
 
       const response = await apperClient.fetchRecords('contact_c', params);
-      
+
       if (!response.success) {
         console.error('Error fetching contacts:', response.message);
         toast.error(response.message);
@@ -43,7 +45,7 @@ export const contactService = {
     }
   },
 
-  async getById(id) {
+async getById(id) {
     try {
       await delay(200);
       
@@ -55,22 +57,25 @@ export const contactService = {
 
       const params = {
         fields: [
+          {"field": {"Name": "Id"}},
           {"field": {"Name": "Name"}},
-          {"field": {"Name": "first_name_c"}},
-          {"field": {"Name": "last_name_c"}},
-          {"field": {"Name": "email_c"}},
-          {"field": {"Name": "phone_c"}},
-          {"field": {"Name": "company_c"}},
-          {"field": {"Name": "status_c"}},
-          {"field": {"Name": "created_at_c"}},
-          {"field": {"Name": "last_activity_c"}}
+          {"field": {"Name": "Email"}},
+          {"field": {"Name": "Phone"}},
+          {"field": {"Name": "Company"}},
+          {"field": {"Name": "Position"}},
+          {"field": {"Name": "Status"}},
+          {"field": {"Name": "Source"}},
+          {"field": {"Name": "Notes"}},
+          {"field": {"Name": "CreatedDate"}},
+          {"field": {"Name": "ModifiedDate"}}
         ]
       };
 
       const response = await apperClient.getRecordById('contact_c', parseInt(id), params);
-      
+
       if (!response.success) {
         console.error(`Error fetching contact ${id}:`, response.message);
+        toast.error(response.message);
         return null;
       }
 
@@ -81,7 +86,7 @@ export const contactService = {
     }
   },
 
-  async create(contactData) {
+async create(contactData) {
     try {
       await delay(400);
       
@@ -92,22 +97,23 @@ export const contactService = {
       });
 
       // Only include Updateable fields
+      const updateableData = {
+        Name: contactData.Name,
+        Email: contactData.Email,
+        Phone: contactData.Phone,
+        Company: contactData.Company,
+        Position: contactData.Position,
+        Status: contactData.Status,
+        Source: contactData.Source,
+        Notes: contactData.Notes
+      };
+
       const params = {
-        records: [{
-          Name: `${contactData.first_name_c} ${contactData.last_name_c}`,
-          first_name_c: contactData.first_name_c,
-          last_name_c: contactData.last_name_c,
-          email_c: contactData.email_c,
-          phone_c: contactData.phone_c || "",
-          company_c: contactData.company_c || "",
-          status_c: contactData.status_c || "lead",
-          created_at_c: new Date().toISOString(),
-          last_activity_c: new Date().toISOString()
-        }]
+        records: [updateableData]
       };
 
       const response = await apperClient.createRecord('contact_c', params);
-      
+
       if (!response.success) {
         console.error('Error creating contact:', response.message);
         toast.error(response.message);
@@ -129,7 +135,7 @@ export const contactService = {
         return successful.length > 0 ? successful[0].data : null;
       }
       
-      return null;
+      return response.data;
     } catch (error) {
       console.error('Error creating contact:', error?.response?.data?.message || error);
       return null;
@@ -137,7 +143,7 @@ export const contactService = {
   },
 
   async update(id, updateData) {
-    try {
+try {
       await delay(300);
       
       const { ApperClient } = window.ApperSDK;
@@ -147,22 +153,24 @@ export const contactService = {
       });
 
       // Only include Updateable fields
+      const updateableData = {
+        Id: parseInt(id),
+        Name: contactData.Name,
+        Email: contactData.Email,
+        Phone: contactData.Phone,
+        Company: contactData.Company,
+        Position: contactData.Position,
+        Status: contactData.Status,
+        Source: contactData.Source,
+        Notes: contactData.Notes
+      };
+
       const params = {
-        records: [{
-          Id: parseInt(id),
-          Name: `${updateData.first_name_c} ${updateData.last_name_c}`,
-          first_name_c: updateData.first_name_c,
-          last_name_c: updateData.last_name_c,
-          email_c: updateData.email_c,
-          phone_c: updateData.phone_c || "",
-          company_c: updateData.company_c || "",
-          status_c: updateData.status_c || "lead",
-          last_activity_c: new Date().toISOString()
-        }]
+        records: [updateableData]
       };
 
       const response = await apperClient.updateRecord('contact_c', params);
-      
+
       if (!response.success) {
         console.error('Error updating contact:', response.message);
         toast.error(response.message);
@@ -184,7 +192,7 @@ export const contactService = {
         return successful.length > 0 ? successful[0].data : null;
       }
       
-      return null;
+      return response.data;
     } catch (error) {
       console.error('Error updating contact:', error?.response?.data?.message || error);
       return null;
@@ -234,7 +242,7 @@ export const contactService = {
     }
   },
 
-  async search(query) {
+async search(query) {
     try {
       await delay(200);
       
@@ -244,34 +252,46 @@ export const contactService = {
         apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
       });
 
+      if (!query || query.trim() === '') {
+        return this.getAll();
+      }
+
       const params = {
         fields: [
+          {"field": {"Name": "Id"}},
           {"field": {"Name": "Name"}},
-          {"field": {"Name": "first_name_c"}},
-          {"field": {"Name": "last_name_c"}},
-          {"field": {"Name": "email_c"}},
-          {"field": {"Name": "phone_c"}},
-          {"field": {"Name": "company_c"}},
-          {"field": {"Name": "status_c"}},
-          {"field": {"Name": "created_at_c"}},
-          {"field": {"Name": "last_activity_c"}}
+          {"field": {"Name": "Email"}},
+          {"field": {"Name": "Phone"}},
+          {"field": {"Name": "Company"}},
+          {"field": {"Name": "Position"}},
+          {"field": {"Name": "Status"}},
+          {"field": {"Name": "Source"}},
+          {"field": {"Name": "Notes"}},
+          {"field": {"Name": "CreatedDate"}},
+          {"field": {"Name": "ModifiedDate"}}
         ],
         whereGroups: [{
           "operator": "OR",
           "subGroups": [
-            {"conditions": [{"fieldName": "first_name_c", "operator": "Contains", "values": [query]}], "operator": ""},
-            {"conditions": [{"fieldName": "last_name_c", "operator": "Contains", "values": [query]}], "operator": ""},
-            {"conditions": [{"fieldName": "email_c", "operator": "Contains", "values": [query]}], "operator": ""},
-            {"conditions": [{"fieldName": "company_c", "operator": "Contains", "values": [query]}], "operator": ""}
+            {
+              "conditions": [
+                {"fieldName": "Name", "operator": "Contains", "values": [query.trim()]},
+                {"fieldName": "Email", "operator": "Contains", "values": [query.trim()]},
+                {"fieldName": "Company", "operator": "Contains", "values": [query.trim()]}
+              ],
+              "operator": "OR"
+            }
           ]
         }],
-        orderBy: [{"fieldName": "Id", "sorttype": "DESC"}]
+        orderBy: [{"fieldName": "CreatedDate", "sorttype": "DESC"}],
+        pagingInfo: {"limit": 100, "offset": 0}
       };
 
       const response = await apperClient.fetchRecords('contact_c', params);
-      
+
       if (!response.success) {
         console.error('Error searching contacts:', response.message);
+        toast.error(response.message);
         return [];
       }
 
