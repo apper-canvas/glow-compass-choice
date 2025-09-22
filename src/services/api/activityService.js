@@ -2,16 +2,26 @@ import { toast } from 'react-toastify';
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
+// Singleton ApperClient instance
+let apperClient = null;
+
+const getApperClient = () => {
+  if (!apperClient) {
+    const { ApperClient } = window.ApperSDK;
+    apperClient = new ApperClient({
+      apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
+      apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
+    });
+  }
+  return apperClient;
+};
+
 export const activityService = {
   async getAll() {
     try {
-      await delay(300);
+      await delay(200);
       
-      const { ApperClient } = window.ApperSDK;
-      const apperClient = new ApperClient({
-        apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
-        apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
-      });
+      const client = getApperClient();
 
       const params = {
         fields: [
@@ -44,11 +54,7 @@ export const activityService = {
     try {
       await delay(200);
       
-      const { ApperClient } = window.ApperSDK;
-      const apperClient = new ApperClient({
-        apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
-        apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
-      });
+const client = getApperClient();
 
       const params = {
         fields: [
@@ -79,11 +85,7 @@ export const activityService = {
     try {
       await delay(400);
       
-      const { ApperClient } = window.ApperSDK;
-      const apperClient = new ApperClient({
-        apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
-        apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
-      });
+const client = getApperClient();
 
       // Only include Updateable fields
       const params = {
@@ -131,11 +133,7 @@ export const activityService = {
     try {
       await delay(300);
       
-      const { ApperClient } = window.ApperSDK;
-      const apperClient = new ApperClient({
-        apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
-        apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
-      });
+const client = getApperClient();
 
       // Only include Updateable fields
       const params = {
@@ -183,11 +181,7 @@ export const activityService = {
     try {
       await delay(250);
       
-      const { ApperClient } = window.ApperSDK;
-      const apperClient = new ApperClient({
-        apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
-        apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
-      });
+const client = getApperClient();
 
       const params = { 
         RecordIds: [parseInt(id)]
@@ -226,11 +220,7 @@ export const activityService = {
     try {
       await delay(200);
       
-      const { ApperClient } = window.ApperSDK;
-      const apperClient = new ApperClient({
-        apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
-        apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
-      });
+const client = getApperClient();
 
       const params = {
         fields: [
