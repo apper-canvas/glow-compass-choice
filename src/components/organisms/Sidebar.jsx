@@ -5,11 +5,12 @@ import ApperIcon from "@/components/ApperIcon";
 import Button from "@/components/atoms/Button";
 
 const Sidebar = ({ isOpen, onClose }) => {
-  const navigation = [
+const navigation = [
     { name: "Dashboard", href: "/", icon: "LayoutDashboard" },
     { name: "Contacts", href: "/contacts", icon: "Users" },
     { name: "Deals", href: "/deals", icon: "Target" },
-    { name: "Activities", href: "/activities", icon: "Clock" }
+    { name: "Activities", href: "/activities", icon: "Clock" },
+    { name: "Reports", href: "/reports", icon: "BarChart3" }
   ];
 
   // Desktop Sidebar

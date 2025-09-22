@@ -1,15 +1,19 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { toast } from "react-toastify";
-import ApperIcon from "@/components/ApperIcon";
-import Card from "@/components/atoms/Card";
-import Badge from "@/components/atoms/Badge";
-import Loading from "@/components/ui/Loading";
-import Error from "@/components/ui/Error";
 import { contactService } from "@/services/api/contactService";
 import { dealService } from "@/services/api/dealService";
 import { activityService } from "@/services/api/activityService";
+import ApperIcon from "@/components/ApperIcon";
+import Activities from "@/components/pages/Activities";
+import Deals from "@/components/pages/Deals";
+import Contacts from "@/components/pages/Contacts";
+import Error from "@/components/ui/Error";
+import Loading from "@/components/ui/Loading";
+import Button from "@/components/atoms/Button";
+import Card from "@/components/atoms/Card";
+import Badge from "@/components/atoms/Badge";
 
 const Dashboard = () => {
   const [contacts, setContacts] = useState([]);
@@ -272,8 +276,44 @@ const Dashboard = () => {
                 })}
             </div>
           </Card>
-        </motion.div>
+</motion.div>
       </div>
+
+      {/* Quick Analytics Access */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.8 }}
+        className="mt-8"
+      >
+        <Card className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-slate-800 mb-2">
+                Advanced Analytics & Reports
+              </h3>
+              <p className="text-sm text-slate-600">
+                View detailed insights on sales performance, conversion rates, and customer acquisition metrics
+              </p>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="text-right">
+                <p className="text-2xl font-bold text-blue-700">
+                  {((metrics.wonDeals / (metrics.activeDeals + metrics.wonDeals)) * 100).toFixed(1)}%
+                </p>
+                <p className="text-xs text-slate-500">Conversion Rate</p>
+              </div>
+              <Button 
+                onClick={() => window.location.href = '/reports'}
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+              >
+                <ApperIcon name="BarChart3" size={16} className="mr-2" />
+                View Reports
+              </Button>
+            </div>
+          </div>
+        </Card>
+      </motion.div>
     </div>
   );
 };

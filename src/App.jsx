@@ -6,17 +6,18 @@ import Dashboard from "@/components/pages/Dashboard";
 import Contacts from "@/components/pages/Contacts";
 import Deals from "@/components/pages/Deals";
 import Activities from "@/components/pages/Activities";
-
+import Reports from "@/components/pages/Reports";
 function App() {
   return (
     <div className="min-h-screen bg-background">
       <Router>
         <Layout>
           <Routes>
-            <Route path="/" element={<Dashboard />} />
+<Route path="/" element={<Dashboard />} />
             <Route path="/contacts" element={<Contacts />} />
             <Route path="/deals" element={<Deals />} />
             <Route path="/activities" element={<Activities />} />
+            <Route path="/reports" element={<Reports />} />
           </Routes>
         </Layout>
       </Router>
