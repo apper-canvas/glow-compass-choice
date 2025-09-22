@@ -142,7 +142,7 @@ async create(contactData) {
     }
   },
 
-  async update(id, updateData) {
+async update(id, updateData) {
 try {
       await delay(300);
       
@@ -155,14 +155,14 @@ try {
       // Only include Updateable fields
       const updateableData = {
         Id: parseInt(id),
-        Name: contactData.Name,
-        Email: contactData.Email,
-        Phone: contactData.Phone,
-        Company: contactData.Company,
-        Position: contactData.Position,
-        Status: contactData.Status,
-        Source: contactData.Source,
-        Notes: contactData.Notes
+        Name: updateData.Name,
+        Email: updateData.Email,
+        Phone: updateData.Phone,
+        Company: updateData.Company,
+        Position: updateData.Position,
+        Status: updateData.Status,
+        Source: updateData.Source,
+        Notes: updateData.Notes
       };
 
       const params = {
