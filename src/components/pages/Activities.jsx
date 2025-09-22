@@ -1,19 +1,19 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { toast } from "react-toastify";
-import ApperIcon from "@/components/ApperIcon";
-import Button from "@/components/atoms/Button";
-import Card from "@/components/atoms/Card";
-import Badge from "@/components/atoms/Badge";
-import Input from "@/components/atoms/Input";
-import Modal from "@/components/molecules/Modal";
-import Loading from "@/components/ui/Loading";
-import Error from "@/components/ui/Error";
-import Empty from "@/components/ui/Empty";
 import { activityService } from "@/services/api/activityService";
 import { contactService } from "@/services/api/contactService";
 import { dealService } from "@/services/api/dealService";
+import ApperIcon from "@/components/ApperIcon";
+import Modal from "@/components/molecules/Modal";
+import Error from "@/components/ui/Error";
+import Empty from "@/components/ui/Empty";
+import Loading from "@/components/ui/Loading";
+import Input from "@/components/atoms/Input";
+import Button from "@/components/atoms/Button";
+import Card from "@/components/atoms/Card";
+import Badge from "@/components/atoms/Badge";
 
 const Activities = () => {
   const [activities, setActivities] = useState([]);
@@ -23,11 +23,11 @@ const Activities = () => {
   const [error, setError] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [typeFilter, setTypeFilter] = useState("all");
-  const [formData, setFormData] = useState({
-    contactId: "",
-    dealId: "",
-    type: "call",
-    description: ""
+const [formData, setFormData] = useState({
+    contact_id_c: "",
+    deal_id_c: "",
+    type_c: "call",
+    description_c: ""
   });
 
   const activityTypes = [
@@ -61,18 +61,24 @@ const Activities = () => {
     loadData();
   }, []);
 
-  const handleOpenModal = () => {
+const handleOpenModal = () => {
     setFormData({
-      contactId: "",
-      dealId: "",
-      type: "call",
-      description: ""
+      contact_id_c: "",
+      deal_id_c: "",
+      type_c: "call",
+      description_c: ""
     });
     setIsModalOpen(true);
   };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
+    setFormData({
+      contact_id_c: "",
+      deal_id_c: "",
+      type_c: "call",
+      description_c: ""
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -80,8 +86,8 @@ const Activities = () => {
     try {
       const activityData = {
         ...formData,
-        contactId: parseInt(formData.contactId),
-        dealId: formData.dealId ? parseInt(formData.dealId) : null
+        contact_id_c: parseInt(formData.contact_id_c),
+        deal_id_c: formData.deal_id_c ? parseInt(formData.deal_id_c) : null
       };
       
       await activityService.create(activityData);
@@ -97,9 +103,9 @@ const Activities = () => {
     if (window.confirm("Are you sure you want to delete this activity?")) {
       try {
         await activityService.delete(activityId);
+        loadData();
         toast.success("Activity deleted successfully");
-        await loadData();
-      } catch (err) {
+      } catch (error) {
         toast.error("Failed to delete activity");
       }
     }
@@ -114,20 +120,19 @@ const Activities = () => {
     const activityType = activityTypes.find(t => t.key === type);
     return activityType ? activityType.color : "default";
   };
-
-  const getContactName = (contactId) => {
-    const contact = contacts.find(c => c.Id === contactId);
-    return contact ? `${contact.firstName} ${contact.lastName}` : "Unknown Contact";
+const getContactName = (contactId) => {
+    const contact = contacts.find(c => c.Id === (contactId?.Id || contactId));
+    return contact ? `${contact.first_name_c} ${contact.last_name_c}` : "Unknown Contact";
   };
 
-  const getDealTitle = (dealId) => {
-    const deal = deals.find(d => d.Id === dealId);
-    return deal ? deal.title : null;
+const getDealTitle = (dealId) => {
+    const deal = deals.find(d => d.Id === (dealId?.Id || dealId));
+    return deal ? deal.title_c : "Unknown Deal";
   };
 
-  const filteredActivities = typeFilter === "all" 
+const filteredActivities = typeFilter === "all" 
     ? activities 
-    : activities.filter(activity => activity.type === typeFilter);
+    : activities.filter(activity => activity.type_c === typeFilter);
 
   if (loading) return <Loading type="table" />;
   if (error) return <Error message={error} onRetry={loadData} />;
@@ -186,9 +191,8 @@ const Activities = () => {
       ) : (
         <div className="space-y-4">
           {filteredActivities.map((activity, index) => {
-            const contact = contacts.find(c => c.Id === activity.contactId);
-            const deal = activity.dealId ? deals.find(d => d.Id === activity.dealId) : null;
-            
+const contact = contacts.find(c => c.Id === activity.contact_id_c?.Id);
+            const deal = activity.deal_id_c ? deals.find(d => d.Id === activity.deal_id_c?.Id) : null;
             return (
               <motion.div
                 key={activity.Id}
@@ -198,19 +202,19 @@ const Activities = () => {
               >
                 <Card className="p-6 hover:shadow-md transition-shadow">
                   <div className="flex items-start space-x-4">
-                    <div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${
-                      getActivityColor(activity.type) === "info" ? "bg-blue-100" :
-                      getActivityColor(activity.type) === "success" ? "bg-green-100" :
-                      getActivityColor(activity.type) === "warning" ? "bg-yellow-100" :
+<div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${
+                      getActivityColor(activity.type_c) === "info" ? "bg-blue-100" :
+                      getActivityColor(activity.type_c) === "success" ? "bg-green-100" :
+                      getActivityColor(activity.type_c) === "warning" ? "bg-yellow-100" :
                       "bg-slate-100"
                     }`}>
                       <ApperIcon 
-                        name={getActivityIcon(activity.type)} 
+                        name={getActivityIcon(activity.type_c)} 
                         size={20} 
                         className={
-                          getActivityColor(activity.type) === "info" ? "text-blue-600" :
-                          getActivityColor(activity.type) === "success" ? "text-green-600" :
-                          getActivityColor(activity.type) === "warning" ? "text-yellow-600" :
+                          getActivityColor(activity.type_c) === "info" ? "text-blue-600" :
+                          getActivityColor(activity.type_c) === "success" ? "text-green-600" :
+                          getActivityColor(activity.type_c) === "warning" ? "text-yellow-600" :
                           "text-slate-600"
                         } 
                       />
@@ -218,22 +222,23 @@ const Activities = () => {
                     
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center space-x-3">
-                          <Badge variant={getActivityColor(activity.type)} size="sm">
-                            {activity.type.replace(/\b\w/g, l => l.toUpperCase())}
+<div className="flex items-center space-x-3">
+                          <Badge variant={getActivityColor(activity.type_c)} size="sm">
+                            {activity.type_c.replace(/\b\w/g, l => l.toUpperCase())}
                           </Badge>
-                          <span className="text-sm font-medium text-slate-800">
-                            {getContactName(activity.contactId)}
-                          </span>
-                          {deal && (
-                            <span className="text-sm text-slate-500">
-                              • {deal.title}
-                            </span>
-                          )}
+                          <p className="text-sm text-slate-600">
+                            {getContactName(activity.contact_id_c)}
+                            {deal && (
+                              <>
+                                <span className="mx-2">•</span>
+                                {getDealTitle(activity.deal_id_c)}
+                              </>
+                            )}
+                          </p>
                         </div>
                         <div className="flex items-center space-x-2">
                           <span className="text-sm text-slate-400">
-                            {format(new Date(activity.createdAt), "MMM dd, yyyy 'at' h:mm a")}
+{format(new Date(activity.created_at_c), "MMM dd, yyyy 'at' h:mm a")}
                           </span>
                           <Button
                             variant="ghost"
@@ -246,8 +251,8 @@ const Activities = () => {
                         </div>
                       </div>
                       
-                      <p className="text-slate-700 leading-relaxed">
-                        {activity.description}
+<p className="text-slate-700 leading-relaxed">
+                        {activity.description_c}
                       </p>
                     </div>
                   </div>
@@ -271,15 +276,15 @@ const Activities = () => {
               Contact
             </label>
             <select
-              value={formData.contactId}
-              onChange={(e) => setFormData(prev => ({...prev, contactId: e.target.value}))}
+value={formData.contact_id_c}
+              onChange={(e) => setFormData(prev => ({...prev, contact_id_c: e.target.value}))}
               className="block w-full px-3 py-2.5 border border-slate-300 rounded-md text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
               required
             >
               <option value="">Select a contact</option>
               {contacts.map(contact => (
                 <option key={contact.Id} value={contact.Id}>
-                  {contact.firstName} {contact.lastName} - {contact.company}
+{contact.first_name_c} {contact.last_name_c} - {contact.company_c}
                 </option>
               ))}
             </select>
@@ -288,16 +293,16 @@ const Activities = () => {
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">
               Related Deal (Optional)
-            </label>
+</label>
             <select
-              value={formData.dealId}
-              onChange={(e) => setFormData(prev => ({...prev, dealId: e.target.value}))}
+              value={formData.deal_id_c}
+              onChange={(e) => setFormData(prev => ({...prev, deal_id_c: e.target.value}))}
               className="block w-full px-3 py-2.5 border border-slate-300 rounded-md text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
             >
               <option value="">No related deal</option>
               {deals.map(deal => (
                 <option key={deal.Id} value={deal.Id}>
-                  {deal.title} - {getContactName(deal.contactId)}
+                  {deal.title_c} - {getContactName(deal.contact_id_c)}
                 </option>
               ))}
             </select>
@@ -308,8 +313,8 @@ const Activities = () => {
               Activity Type
             </label>
             <select
-              value={formData.type}
-              onChange={(e) => setFormData(prev => ({...prev, type: e.target.value}))}
+              value={formData.type_c}
+              onChange={(e) => setFormData(prev => ({...prev, type_c: e.target.value}))}
               className="block w-full px-3 py-2.5 border border-slate-300 rounded-md text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
             >
               {activityTypes.map(type => (
@@ -320,13 +325,13 @@ const Activities = () => {
             </select>
           </div>
           
-          <div>
+<div>
             <label className="block text-sm font-medium text-slate-700 mb-2">
               Description
             </label>
             <textarea
-              value={formData.description}
-              onChange={(e) => setFormData(prev => ({...prev, description: e.target.value}))}
+              value={formData.description_c}
+              onChange={(e) => setFormData(prev => ({...prev, description_c: e.target.value}))}
               rows={4}
               className="block w-full px-3 py-2.5 border border-slate-300 rounded-md text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
               placeholder="Describe the activity details..."

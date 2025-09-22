@@ -1,20 +1,22 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { toast } from "react-toastify";
-import ApperIcon from "@/components/ApperIcon";
-import Button from "@/components/atoms/Button";
-import Card from "@/components/atoms/Card";
-import Badge from "@/components/atoms/Badge";
-import Input from "@/components/atoms/Input";
-import SearchBar from "@/components/molecules/SearchBar";
-import Modal from "@/components/molecules/Modal";
-import Loading from "@/components/ui/Loading";
-import Error from "@/components/ui/Error";
-import Empty from "@/components/ui/Empty";
 import { contactService } from "@/services/api/contactService";
 import { activityService } from "@/services/api/activityService";
 import { dealService } from "@/services/api/dealService";
+import ApperIcon from "@/components/ApperIcon";
+import SearchBar from "@/components/molecules/SearchBar";
+import Modal from "@/components/molecules/Modal";
+import Activities from "@/components/pages/Activities";
+import Deals from "@/components/pages/Deals";
+import Error from "@/components/ui/Error";
+import Empty from "@/components/ui/Empty";
+import Loading from "@/components/ui/Loading";
+import Input from "@/components/atoms/Input";
+import Button from "@/components/atoms/Button";
+import Card from "@/components/atoms/Card";
+import Badge from "@/components/atoms/Badge";
 
 const Contacts = () => {
   const [contacts, setContacts] = useState([]);
@@ -28,13 +30,13 @@ const Contacts = () => {
   const [contactActivities, setContactActivities] = useState([]);
   const [contactDeals, setContactDeals] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    company: "",
-    status: "lead"
+const [formData, setFormData] = useState({
+    first_name_c: "",
+    last_name_c: "",
+    email_c: "",
+    phone_c: "",
+    company_c: "",
+    status_c: "lead"
   });
 
   const loadContacts = async () => {
@@ -59,7 +61,7 @@ const Contacts = () => {
         dealService.getAll()
       ]);
       setContactActivities(activities);
-      setContactDeals(deals.filter(deal => deal.contactId === contactId));
+setContactDeals(deals.filter(deal => deal.contact_id_c?.Id === contactId));
     } catch (err) {
       toast.error("Failed to load contact details");
     }
@@ -73,15 +75,15 @@ const Contacts = () => {
     let filtered = contacts;
 
     if (searchTerm) {
-      filtered = filtered.filter(contact =>
-        `${contact.firstName} ${contact.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        contact.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        contact.company.toLowerCase().includes(searchTerm.toLowerCase())
+filtered = filtered.filter(contact =>
+        `${contact.first_name_c} ${contact.last_name_c}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        contact.email_c.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        contact.company_c.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
-    if (statusFilter !== "all") {
-      filtered = filtered.filter(contact => contact.status === statusFilter);
+if (statusFilter !== "all") {
+filtered = filtered.filter(contact => contact.status_c === statusFilter);
     }
 
     setFilteredContacts(filtered);
@@ -89,30 +91,28 @@ const Contacts = () => {
 
   const handleOpenModal = (contact = null) => {
     if (contact) {
-      setSelectedContact(contact);
+setSelectedContact(contact);
       setFormData({
-        firstName: contact.firstName,
-        lastName: contact.lastName,
-        email: contact.email,
-        phone: contact.phone,
-        company: contact.company,
-        status: contact.status
+        first_name_c: contact.first_name_c,
+        last_name_c: contact.last_name_c,
+        email_c: contact.email_c,
+        phone_c: contact.phone_c,
+        company_c: contact.company_c,
+        status_c: contact.status_c
       });
       setIsEditing(true);
       loadContactDetails(contact.Id);
-    } else {
+} else {
       setSelectedContact(null);
       setFormData({
-        firstName: "",
-        lastName: "",
-        email: "",
-        phone: "",
-        company: "",
-        status: "lead"
+        first_name_c: "",
+        last_name_c: "",
+        email_c: "",
+        phone_c: "",
+        company_c: "",
+        status_c: "lead"
       });
       setIsEditing(false);
-      setContactActivities([]);
-      setContactDeals([]);
     }
     setIsModalOpen(true);
   };
@@ -241,23 +241,23 @@ const Contacts = () => {
                 <div className="flex items-start justify-between mb-4">
                   <div className="w-12 h-12 bg-gradient-to-r from-primary to-blue-700 rounded-full flex items-center justify-center">
                     <span className="text-white font-semibold">
-                      {contact.firstName[0]}{contact.lastName[0]}
+{contact.first_name_c[0]}{contact.last_name_c[0]}
                     </span>
                   </div>
-                  <Badge variant={getStatusBadge(contact.status)} size="sm">
-                    {contact.status.replace(/\b\w/g, l => l.toUpperCase())}
+<Badge variant={getStatusBadge(contact.status_c)} size="sm">
+{contact.status_c.charAt(0).toUpperCase() + contact.status_c.slice(1)}
                   </Badge>
                 </div>
                 
                 <h3 className="text-lg font-semibold text-slate-800 mb-1">
-                  {contact.firstName} {contact.lastName}
+{contact.first_name_c} {contact.last_name_c}
                 </h3>
-                <p className="text-slate-600 mb-2">{contact.company}</p>
-                <p className="text-sm text-slate-500 mb-3">{contact.email}</p>
+<p className="text-slate-600 mb-2">{contact.company_c}</p>
+<p className="text-sm text-slate-500 mb-3">{contact.email_c}</p>
                 
                 <div className="flex items-center justify-between text-xs text-slate-400">
-                  <span>Created {format(new Date(contact.createdAt), "MMM dd, yyyy")}</span>
-                  <span>Last activity {format(new Date(contact.lastActivity), "MMM dd")}</span>
+<span>Created {format(new Date(contact.created_at_c), "MMM dd, yyyy")}</span>
+                  <span>Last activity {format(new Date(contact.last_activity_c), "MMM dd")}</span>
                 </div>
               </Card>
             </motion.div>
@@ -293,36 +293,35 @@ const Contacts = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Input
                   label="First Name"
-                  value={formData.firstName}
-                  onChange={(e) => setFormData(prev => ({...prev, firstName: e.target.value}))}
+value={formData.first_name_c}
+                  onChange={(e) => setFormData(prev => ({...prev, first_name_c: e.target.value}))}
                   required
                 />
                 <Input
                   label="Last Name"
-                  value={formData.lastName}
-                  onChange={(e) => setFormData(prev => ({...prev, lastName: e.target.value}))}
+value={formData.last_name_c}
+onChange={(e) => setFormData(prev => ({...prev, last_name_c: e.target.value}))}
                   required
                 />
               </div>
               
-              <Input
+<Input
                 label="Email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData(prev => ({...prev, email: e.target.value}))}
+                value={formData.email_c}
+                onChange={(e) => setFormData(prev => ({...prev, email_c: e.target.value}))}
                 required
               />
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Input
                   label="Phone"
-                  value={formData.phone}
-                  onChange={(e) => setFormData(prev => ({...prev, phone: e.target.value}))}
+value={formData.phone_c}
+onChange={(e) => setFormData(prev => ({...prev, phone_c: e.target.value}))}
                 />
                 <Input
                   label="Company"
-                  value={formData.company}
-                  onChange={(e) => setFormData(prev => ({...prev, company: e.target.value}))}
+value={formData.company_c}
+onChange={(e) => setFormData(prev => ({...prev, company_c: e.target.value}))}
                   required
                 />
               </div>
@@ -332,8 +331,8 @@ const Contacts = () => {
                   Status
                 </label>
                 <select
-                  value={formData.status}
-                  onChange={(e) => setFormData(prev => ({...prev, status: e.target.value}))}
+value={formData.status_c}
+                  onChange={(e) => setFormData(prev => ({...prev, status_c: e.target.value}))}
                   className="block w-full px-3 py-2.5 border border-slate-300 rounded-md text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 >
                   <option value="lead">Lead</option>
@@ -372,12 +371,12 @@ const Contacts = () => {
                   {contactActivities.slice(0, 3).map(activity => (
                     <div key={activity.Id} className="flex items-start space-x-3 p-3 bg-slate-50 rounded-lg">
                       <div className="w-8 h-8 bg-slate-200 rounded-full flex items-center justify-center flex-shrink-0">
-                        <ApperIcon name={getActivityIcon(activity.type)} size={14} className="text-slate-600" />
+<ApperIcon name={getActivityIcon(activity.type_c)} size={14} className="text-slate-600" />
                       </div>
                       <div className="flex-1">
-                        <p className="text-sm text-slate-800">{activity.description}</p>
+<p className="text-sm text-slate-800">{activity.description_c}</p>
                         <p className="text-xs text-slate-500 mt-1">
-                          {format(new Date(activity.createdAt), "MMM dd, yyyy 'at' h:mm a")}
+{format(new Date(activity.created_at_c), "MMM dd, yyyy 'at' h:mm a")}
                         </p>
                       </div>
                     </div>
@@ -391,36 +390,35 @@ const Contacts = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
                 label="First Name"
-                value={formData.firstName}
-                onChange={(e) => setFormData(prev => ({...prev, firstName: e.target.value}))}
+value={formData.first_name_c}
+                onChange={(e) => setFormData(prev => ({...prev, first_name_c: e.target.value}))}
                 required
               />
               <Input
                 label="Last Name"
-                value={formData.lastName}
-                onChange={(e) => setFormData(prev => ({...prev, lastName: e.target.value}))}
+value={formData.last_name_c}
+onChange={(e) => setFormData(prev => ({...prev, last_name_c: e.target.value}))}
                 required
               />
             </div>
             
-            <Input
+<Input
               label="Email"
-              type="email"
-              value={formData.email}
-              onChange={(e) => setFormData(prev => ({...prev, email: e.target.value}))}
+              value={formData.email_c}
+              onChange={(e) => setFormData(prev => ({...prev, email_c: e.target.value}))}
               required
             />
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
                 label="Phone"
-                value={formData.phone}
-                onChange={(e) => setFormData(prev => ({...prev, phone: e.target.value}))}
+value={formData.phone_c}
+onChange={(e) => setFormData(prev => ({...prev, phone_c: e.target.value}))}
               />
-              <Input
+<Input
                 label="Company"
-                value={formData.company}
-                onChange={(e) => setFormData(prev => ({...prev, company: e.target.value}))}
+                value={formData.company_c}
+                onChange={(e) => setFormData(prev => ({...prev, company_c: e.target.value}))}
                 required
               />
             </div>
@@ -430,8 +428,8 @@ const Contacts = () => {
                 Status
               </label>
               <select
-                value={formData.status}
-                onChange={(e) => setFormData(prev => ({...prev, status: e.target.value}))}
+value={formData.status_c}
+                onChange={(e) => setFormData(prev => ({...prev, status_c: e.target.value}))}
                 className="block w-full px-3 py-2.5 border border-slate-300 rounded-md text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
               >
                 <option value="lead">Lead</option>

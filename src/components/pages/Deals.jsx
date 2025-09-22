@@ -1,18 +1,18 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { toast } from "react-toastify";
+import { dealService } from "@/services/api/dealService";
+import { contactService } from "@/services/api/contactService";
 import ApperIcon from "@/components/ApperIcon";
+import Modal from "@/components/molecules/Modal";
+import Error from "@/components/ui/Error";
+import Empty from "@/components/ui/Empty";
+import Loading from "@/components/ui/Loading";
+import Input from "@/components/atoms/Input";
 import Button from "@/components/atoms/Button";
 import Card from "@/components/atoms/Card";
 import Badge from "@/components/atoms/Badge";
-import Input from "@/components/atoms/Input";
-import Modal from "@/components/molecules/Modal";
-import Loading from "@/components/ui/Loading";
-import Error from "@/components/ui/Error";
-import Empty from "@/components/ui/Empty";
-import { dealService } from "@/services/api/dealService";
-import { contactService } from "@/services/api/contactService";
 
 const Deals = () => {
   const [deals, setDeals] = useState([]);
@@ -22,13 +22,13 @@ const Deals = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDeal, setSelectedDeal] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState({
-    title: "",
-    contactId: "",
-    value: "",
-    stage: "lead",
-    probability: "",
-    expectedCloseDate: ""
+const [formData, setFormData] = useState({
+    title_c: "",
+    contact_id_c: "",
+    value_c: "",
+    stage_c: "lead",
+    probability_c: "",
+    expected_close_date_c: ""
   });
 
   const stages = [
@@ -63,25 +63,25 @@ const Deals = () => {
 
   const handleOpenModal = (deal = null) => {
     if (deal) {
-      setSelectedDeal(deal);
+setSelectedDeal(deal);
       setFormData({
-        title: deal.title,
-        contactId: deal.contactId.toString(),
-        value: deal.value.toString(),
-        stage: deal.stage,
-        probability: deal.probability.toString(),
-        expectedCloseDate: format(new Date(deal.expectedCloseDate), "yyyy-MM-dd")
+        title_c: deal.title_c,
+        contact_id_c: deal.contact_id_c?.Id ? deal.contact_id_c.Id.toString() : "",
+        value_c: deal.value_c.toString(),
+        stage_c: deal.stage_c,
+        probability_c: deal.probability_c.toString(),
+        expected_close_date_c: format(new Date(deal.expected_close_date_c), "yyyy-MM-dd")
       });
       setIsEditing(true);
-    } else {
+} else {
       setSelectedDeal(null);
       setFormData({
-        title: "",
-        contactId: "",
-        value: "",
-        stage: "lead",
-        probability: "",
-        expectedCloseDate: ""
+        title_c: "",
+        contact_id_c: "",
+        value_c: "",
+        stage_c: "lead",
+        probability_c: "",
+        expected_close_date_c: ""
       });
       setIsEditing(false);
     }
@@ -98,11 +98,11 @@ const Deals = () => {
     e.preventDefault();
     try {
       const dealData = {
-        ...formData,
-        contactId: parseInt(formData.contactId),
-        value: parseFloat(formData.value),
-        probability: parseInt(formData.probability),
-        expectedCloseDate: new Date(formData.expectedCloseDate).toISOString()
+...formData,
+        contact_id_c: parseInt(formData.contact_id_c),
+        value_c: parseFloat(formData.value_c),
+        probability_c: parseInt(formData.probability_c),
+        expected_close_date_c: new Date(formData.expected_close_date_c).toISOString()
       };
 
       if (isEditing) {
@@ -147,9 +147,9 @@ const Deals = () => {
     const dealId = parseInt(e.dataTransfer.getData("text/plain"));
     const deal = deals.find(d => d.Id === dealId);
     
-    if (deal && deal.stage !== targetStage) {
+if (deal && deal.stage_c !== targetStage) {
       try {
-        await dealService.update(dealId, { stage: targetStage });
+        await dealService.update(dealId, { stage_c: targetStage });
         toast.success("Deal stage updated");
         await loadData();
       } catch (err) {
@@ -158,25 +158,23 @@ const Deals = () => {
     }
   };
 
-  const getStageBadge = (stage) => {
+const getStageBadge = (stage) => {
     const stageConfig = stages.find(s => s.key === stage);
     return stageConfig ? stageConfig.color : "default";
   };
 
-  const getContactName = (contactId) => {
-    const contact = contacts.find(c => c.Id === contactId);
-    return contact ? `${contact.firstName} ${contact.lastName}` : "Unknown Contact";
+const getContactName = (contactId) => {
+    const contact = contacts.find(c => c.Id === (contactId?.Id || contactId));
+    return contact ? `${contact.first_name_c} ${contact.last_name_c}` : "Unknown Contact";
   };
 
   if (loading) return <Loading type="cards" />;
   if (error) return <Error message={error} onRetry={loadData} />;
 
   return (
-    <div className="p-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
-        <h1 className="text-2xl font-bold text-slate-800 mb-4 sm:mb-0">Deals Pipeline</h1>
-        <Button onClick={() => handleOpenModal()} variant="accent">
+    <div className="p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-slate-800">Deals Pipeline</h1>
           <ApperIcon name="Plus" size={16} className="mr-2" />
           Add Deal
         </Button>
@@ -185,8 +183,8 @@ const Deals = () => {
       {/* Pipeline Board */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         {stages.map(stage => {
-          const stageDeals = deals.filter(deal => deal.stage === stage.key);
-          const stageValue = stageDeals.reduce((sum, deal) => sum + deal.value, 0);
+const stageDeals = deals.filter(deal => deal.stage_c === stage.key);
+          const stageValue = stageDeals.reduce((sum, deal) => sum + deal.value_c, 0);
           
           return (
             <motion.div
@@ -232,33 +230,33 @@ const Deals = () => {
                       >
                         <div className="flex items-start justify-between mb-2">
                           <h4 className="font-medium text-slate-800 text-sm line-clamp-2">
-                            {deal.title}
+{deal.title_c}
                           </h4>
                           <ApperIcon name="GripVertical" size={16} className="text-slate-400" />
                         </div>
                         
-                        <p className="text-sm text-slate-600 mb-2">
-                          {getContactName(deal.contactId)}
+<p className="text-sm text-slate-600 mb-2">
+                          {getContactName(deal.contact_id_c)}
                         </p>
                         
                         <div className="flex items-center justify-between mb-2">
                           <span className="text-lg font-bold text-slate-800">
-                            ${deal.value.toLocaleString()}
+${deal.value_c.toLocaleString()}
                           </span>
-                          <span className="text-sm text-slate-500">
-                            {deal.probability}%
+<span className="text-sm text-slate-500">
+                            {deal.probability_c}%
                           </span>
                         </div>
                         
                         <div className="w-full bg-slate-200 rounded-full h-2 mb-2">
                           <div
                             className="bg-gradient-to-r from-primary to-blue-700 h-2 rounded-full"
-                            style={{ width: `${deal.probability}%` }}
+style={{ width: `${deal.probability_c}%` }}
                           />
                         </div>
                         
-                        <p className="text-xs text-slate-400">
-                          Expected: {format(new Date(deal.expectedCloseDate), "MMM dd, yyyy")}
+<p className="text-xs text-slate-400">
+                          Expected: {format(new Date(deal.expected_close_date_c), "MMM dd, yyyy")}
                         </p>
                       </Card>
                     </motion.div>
@@ -280,8 +278,8 @@ const Deals = () => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input
             label="Deal Title"
-            value={formData.title}
-            onChange={(e) => setFormData(prev => ({...prev, title: e.target.value}))}
+value={formData.title_c}
+onChange={(e) => setFormData(prev => ({...prev, title_c: e.target.value}))}
             required
           />
           
@@ -290,15 +288,15 @@ const Deals = () => {
               Contact
             </label>
             <select
-              value={formData.contactId}
-              onChange={(e) => setFormData(prev => ({...prev, contactId: e.target.value}))}
+value={formData.contact_id_c}
+              onChange={(e) => setFormData(prev => ({...prev, contact_id_c: e.target.value}))}
               className="block w-full px-3 py-2.5 border border-slate-300 rounded-md text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
               required
             >
               <option value="">Select a contact</option>
               {contacts.map(contact => (
                 <option key={contact.Id} value={contact.Id}>
-                  {contact.firstName} {contact.lastName} - {contact.company}
+{contact.first_name_c} {contact.last_name_c} - {contact.company_c}
                 </option>
               ))}
             </select>
@@ -307,18 +305,16 @@ const Deals = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
               label="Deal Value ($)"
-              type="number"
-              value={formData.value}
-              onChange={(e) => setFormData(prev => ({...prev, value: e.target.value}))}
+type="number"
+value={formData.value_c}
+              onChange={(e) => setFormData(prev => ({...prev, value_c: e.target.value}))}
               required
             />
-            <Input
+<Input
               label="Probability (%)"
               type="number"
-              min="0"
-              max="100"
-              value={formData.probability}
-              onChange={(e) => setFormData(prev => ({...prev, probability: e.target.value}))}
+              value={formData.probability_c}
+              onChange={(e) => setFormData(prev => ({...prev, probability_c: e.target.value}))}
               required
             />
           </div>
@@ -328,8 +324,8 @@ const Deals = () => {
               Stage
             </label>
             <select
-              value={formData.stage}
-              onChange={(e) => setFormData(prev => ({...prev, stage: e.target.value}))}
+value={formData.stage_c}
+              onChange={(e) => setFormData(prev => ({...prev, stage_c: e.target.value}))}
               className="block w-full px-3 py-2.5 border border-slate-300 rounded-md text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
             >
               {stages.map(stage => (
@@ -343,8 +339,8 @@ const Deals = () => {
           <Input
             label="Expected Close Date"
             type="date"
-            value={formData.expectedCloseDate}
-            onChange={(e) => setFormData(prev => ({...prev, expectedCloseDate: e.target.value}))}
+value={formData.expected_close_date_c}
+onChange={(e) => setFormData(prev => ({...prev, expected_close_date_c: e.target.value}))}
             required
           />
 

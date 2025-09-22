@@ -59,12 +59,12 @@ function calculateConversionRate(deals, months) {
     const monthEnd = endOfMonth(month);
     
     // Filter deals created in this month
-    const monthDeals = deals.filter(deal => {
-      const dealDate = parseISO(deal.createdAt);
+const monthDeals = deals.filter(deal => {
+      const dealDate = parseISO(deal.created_at_c);
       return dealDate >= monthStart && dealDate <= monthEnd;
     });
     
-    const wonDeals = monthDeals.filter(deal => deal.stage === 'closed-won').length;
+const wonDeals = monthDeals.filter(deal => deal.stage_c === 'closed-won').length;
     const totalDeals = monthDeals.length;
     const rate = totalDeals > 0 ? (wonDeals / totalDeals) * 100 : 0;
     
@@ -94,15 +94,15 @@ function calculateLeadGeneration(contacts, deals, months) {
     const monthEnd = endOfMonth(month);
     
     // New contacts (leads) created in this month
-    const newLeads = contacts.filter(contact => {
-      const contactDate = parseISO(contact.createdAt);
+const newLeads = contacts.filter(contact => {
+      const contactDate = parseISO(contact.created_at_c);
       return contactDate >= monthStart && contactDate <= monthEnd;
     }).length;
     
     // Qualified leads (contacts with deals) in this month
-    const qualifiedLeads = contacts.filter(contact => {
-      const contactDate = parseISO(contact.createdAt);
-      const hasDeals = deals.some(deal => deal.contactId === contact.Id);
+const qualifiedLeads = contacts.filter(contact => {
+      const contactDate = parseISO(contact.created_at_c);
+      const hasDeals = deals.some(deal => deal.contact_id_c?.Id === contact.Id);
       return contactDate >= monthStart && contactDate <= monthEnd && hasDeals;
     }).length;
     
@@ -134,7 +134,7 @@ function calculateLeadGeneration(contacts, deals, months) {
 
 function calculateCustomerAcquisitionCost(deals, contacts) {
   // Filter won deals
-  const wonDeals = deals.filter(deal => deal.stage === 'closed-won');
+const wonDeals = deals.filter(deal => deal.stage_c === 'closed-won');
   
   if (wonDeals.length === 0) {
     return {
@@ -149,10 +149,10 @@ function calculateCustomerAcquisitionCost(deals, contacts) {
   // Using a simplified model: higher deal values = lower relative CAC
   const cacValues = wonDeals.map(deal => {
     // Base CAC calculation (simplified)
-    const baseCac = Math.max(500, Math.min(5000, 10000 - (deal.value * 0.1)));
+const baseCac = Math.max(500, Math.min(5000, 10000 - (deal.value_c * 0.1)));
     
     // Adjust based on deal probability (higher probability = lower CAC)
-    const probabilityFactor = deal.probability / 100;
+    const probabilityFactor = deal.probability_c / 100;
     const adjustedCac = baseCac * (1.5 - probabilityFactor);
     
     return Math.round(adjustedCac);
@@ -185,13 +185,13 @@ function calculateCustomerAcquisitionCost(deals, contacts) {
 
 function calculatePipelineAnalysis(deals) {
   // Group deals by stage
-  const stageGroups = deals.reduce((acc, deal) => {
-    if (deal.stage !== 'closed-lost') {
-      if (!acc[deal.stage]) {
-        acc[deal.stage] = { count: 0, value: 0 };
+const stageGroups = deals.reduce((acc, deal) => {
+    if (deal.stage_c !== 'closed-lost') {
+      if (!acc[deal.stage_c]) {
+        acc[deal.stage_c] = { count: 0, value: 0 };
       }
-      acc[deal.stage].count++;
-      acc[deal.stage].value += deal.value;
+      acc[deal.stage_c].count++;
+      acc[deal.stage_c].value += deal.value_c;
     }
     return acc;
   }, {});
@@ -213,7 +213,7 @@ function calculatePipelineAnalysis(deals) {
 }
 
 function calculateRevenueMetrics(deals, months) {
-  const wonDeals = deals.filter(deal => deal.stage === 'closed-won');
+const wonDeals = deals.filter(deal => deal.stage_c === 'closed-won');
   
   const monthly = months.map(month => {
     const monthStart = startOfMonth(month);
@@ -221,11 +221,11 @@ function calculateRevenueMetrics(deals, months) {
     
     // Revenue from deals closed in this month
     const monthRevenue = wonDeals
-      .filter(deal => {
-        const closedDate = parseISO(deal.expectedCloseDate);
+.filter(deal => {
+        const closedDate = parseISO(deal.expected_close_date_c);
         return closedDate >= monthStart && closedDate <= monthEnd;
       })
-      .reduce((sum, deal) => sum + deal.value, 0);
+.reduce((sum, deal) => sum + deal.value_c, 0);
     
     return {
       month: format(month, 'yyyy-MM-dd'),
