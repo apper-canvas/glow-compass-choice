@@ -14,6 +14,8 @@ switch (path) {
         return "Dashboard";
       case "/contacts":
         return "Contacts";
+      case "/companies":
+        return "Companies";
       case "/deals":
         return "Deals";
       case "/activities":

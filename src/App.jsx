@@ -1,22 +1,22 @@
-import { createContext, useEffect, useState } from 'react';
-import { Routes, Route, useNavigate, BrowserRouter as Router } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { Provider } from 'react-redux';
-import { store } from '@/store/store';
-import { setUser, clearUser } from '@/store/userSlice';
+import React, { createContext, useEffect, useState } from "react";
+import { Route, Router, Routes, useNavigate } from "react-router-dom";
+import { Provider, useDispatch, useSelector } from "react-redux";
+import { store } from "@/store/store";
 import { ToastContainer } from "react-toastify";
-import Layout from "@/components/organisms/Layout";
-import Dashboard from "@/components/pages/Dashboard";
-import Contacts from "@/components/pages/Contacts";
-import Deals from "@/components/pages/Deals";
-import Activities from "@/components/pages/Activities";
+import Companies from "@/components/pages/Companies";
+import PromptPassword from "@/components/pages/PromptPassword";
+import Callback from "@/components/pages/Callback";
 import Reports from "@/components/pages/Reports";
-import Login from '@/components/pages/Login';
-import Signup from '@/components/pages/Signup';
-import Callback from '@/components/pages/Callback';
-import ErrorPage from '@/components/pages/ErrorPage';
-import ResetPassword from '@/components/pages/ResetPassword';
-import PromptPassword from '@/components/pages/PromptPassword';
+import Activities from "@/components/pages/Activities";
+import ResetPassword from "@/components/pages/ResetPassword";
+import Dashboard from "@/components/pages/Dashboard";
+import Login from "@/components/pages/Login";
+import Deals from "@/components/pages/Deals";
+import Signup from "@/components/pages/Signup";
+import Contacts from "@/components/pages/Contacts";
+import ErrorPage from "@/components/pages/ErrorPage";
+import Layout from "@/components/organisms/Layout";
+import { clearUser, setUser } from "@/store/userSlice";
 
 // Create auth context
 export const AuthContext = createContext(null);
@@ -138,6 +138,7 @@ function AppContent() {
                 <Route path="/contacts" element={<Contacts />} />
                 <Route path="/deals" element={<Deals />} />
                 <Route path="/activities" element={<Activities />} />
+<Route path="/companies" element={<Companies />} />
                 <Route path="/reports" element={<Reports />} />
               </Routes>
             </Layout>
