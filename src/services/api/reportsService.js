@@ -1,11 +1,14 @@
 import { contactService } from "@/services/api/contactService";
 import { dealService } from "@/services/api/dealService";
 import { activityService } from "@/services/api/activityService";
-import { subMonths, startOfMonth, endOfMonth, eachMonthOfInterval, format, parseISO } from "date-fns";
+import { eachMonthOfInterval, endOfMonth, format, parseISO, startOfMonth, subMonths } from "date-fns";
+import React from "react";
+import Error from "@/components/ui/Error";
+import { getAll } from "@/services/api/companiesService";
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-export const reportsService = {
+class ReportsService {
   async getAnalytics(timeframe = '6months') {
     await delay(500);
     
@@ -17,228 +20,208 @@ export const reportsService = {
         activityService.getAll()
       ]);
 
-      // Calculate timeframe dates
-      const monthsBack = timeframe === '3months' ? 3 : timeframe === '12months' ? 12 : 6;
+      // Calculate timeframe
+      const monthsToInclude = timeframe === '3months' ? 3 : timeframe === '12months' ? 12 : 6;
       const endDate = new Date();
-      const startDate = subMonths(endDate, monthsBack);
-      const months = eachMonthOfInterval({ start: startDate, end: endDate });
+      const startDate = subMonths(endDate, monthsToInclude - 1);
+      const months = eachMonthOfInterval({ start: startOfMonth(startDate), end: endOfMonth(endDate) });
 
-      // Calculate conversion rate metrics
-      const conversionRate = calculateConversionRate(deals, months);
-      
-      // Calculate lead generation metrics
-      const leadGeneration = calculateLeadGeneration(contacts, deals, months);
-      
-      // Calculate customer acquisition cost
-      const customerAcquisitionCost = calculateCustomerAcquisitionCost(deals, contacts);
-      
-      // Calculate pipeline analysis
-      const pipelineAnalysis = calculatePipelineAnalysis(deals);
-      
-      // Calculate revenue metrics
-      const revenueMetrics = calculateRevenueMetrics(deals, months);
+      // Calculate metrics
+      const conversionData = this.calculateConversionRate(deals, months);
+      const leadGenData = this.calculateLeadGeneration(contacts, deals, months);
+      const customerAcquisitionCost = this.calculateCustomerAcquisitionCost(deals, contacts);
+      const pipelineAnalysis = this.calculatePipelineAnalysis(deals);
+      const revenueMetrics = this.calculateRevenueMetrics(deals, months);
 
       return {
-        conversionRate,
-        leadGeneration,
+        conversionRate: conversionData,
+        conversionTrend: conversionData.monthly,
+        leadGeneration: leadGenData,
         customerAcquisitionCost,
         pipelineAnalysis,
-        revenueMetrics,
-        generatedAt: new Date().toISOString()
+        revenueMetrics
       };
     } catch (error) {
-      console.error('Error generating analytics:', error);
-      throw new Error('Failed to generate analytics data');
+      console.error('Error calculating analytics:', error);
+      throw new Error('Failed to calculate analytics data');
     }
   }
-};
 
-function calculateConversionRate(deals, months) {
-  const conversionTrend = months.map(month => {
-    const monthStart = startOfMonth(month);
-    const monthEnd = endOfMonth(month);
-    
-    // Filter deals created in this month
-const monthDeals = deals.filter(deal => {
-      const dealDate = parseISO(deal.created_at_c);
-      return dealDate >= monthStart && dealDate <= monthEnd;
+  calculateConversionRate(deals, months) {
+    const monthlyData = months.map(month => {
+      const monthStart = startOfMonth(month);
+      const monthEnd = endOfMonth(month);
+      
+      // Filter deals for this month using database field names
+      const monthDeals = deals.filter(deal => {
+        if (!deal.CreatedAt) return false;
+        const dealDate = parseISO(deal.CreatedAt);
+        return dealDate >= monthStart && dealDate <= monthEnd;
+      });
+      
+      const totalDeals = monthDeals.length;
+      const wonDeals = monthDeals.filter(deal => deal.Stage === 'closed-won').length;
+      const rate = totalDeals > 0 ? (wonDeals / totalDeals) * 100 : 0;
+      
+      return {
+        month: format(month, 'yyyy-MM-dd'),
+        rate: parseFloat(rate.toFixed(1))
+      };
     });
     
-const wonDeals = monthDeals.filter(deal => deal.stage_c === 'closed-won').length;
-    const totalDeals = monthDeals.length;
-    const rate = totalDeals > 0 ? (wonDeals / totalDeals) * 100 : 0;
+    const currentRate = monthlyData.length > 0 ? monthlyData[monthlyData.length - 1].rate : 0;
+    const previousRate = monthlyData.length > 1 ? monthlyData[monthlyData.length - 2].rate : 0;
+    const trend = currentRate - previousRate;
     
     return {
-      month: format(month, 'yyyy-MM-dd'),
-      rate: parseFloat(rate.toFixed(2)),
-      wonDeals,
-      totalDeals
-    };
-  });
-
-  // Current month conversion rate
-  const currentMonth = conversionTrend[conversionTrend.length - 1];
-  const previousMonth = conversionTrend[conversionTrend.length - 2];
-  const trend = previousMonth ? currentMonth.rate - previousMonth.rate : 0;
-
-  return {
-    current: currentMonth.rate,
-    trend: parseFloat(trend.toFixed(2)),
-    conversionTrend
-  };
-}
-
-function calculateLeadGeneration(contacts, deals, months) {
-  const monthly = months.map(month => {
-    const monthStart = startOfMonth(month);
-    const monthEnd = endOfMonth(month);
-    
-    // New contacts (leads) created in this month
-const newLeads = contacts.filter(contact => {
-      const contactDate = parseISO(contact.created_at_c);
-      return contactDate >= monthStart && contactDate <= monthEnd;
-    }).length;
-    
-    // Qualified leads (contacts with deals) in this month
-const qualifiedLeads = contacts.filter(contact => {
-      const contactDate = parseISO(contact.created_at_c);
-      const hasDeals = deals.some(deal => deal.contact_id_c?.Id === contact.Id);
-      return contactDate >= monthStart && contactDate <= monthEnd && hasDeals;
-    }).length;
-    
-    return {
-      month: format(month, 'yyyy-MM-dd'),
-      newLeads,
-      qualifiedLeads,
-      qualificationRate: newLeads > 0 ? (qualifiedLeads / newLeads) * 100 : 0
-    };
-  });
-
-  const totalNewLeads = monthly.reduce((sum, month) => sum + month.newLeads, 0);
-  const monthlyAverage = Math.round(totalNewLeads / monthly.length);
-  
-  // Calculate trend (comparing last two months)
-  const currentMonth = monthly[monthly.length - 1];
-  const previousMonth = monthly[monthly.length - 2];
-  const trend = previousMonth && previousMonth.newLeads > 0 
-    ? ((currentMonth.newLeads - previousMonth.newLeads) / previousMonth.newLeads) * 100 
-    : 0;
-
-  return {
-    monthly,
-    monthlyAverage,
-    totalNewLeads,
-    trend: parseFloat(trend.toFixed(2))
-  };
-}
-
-function calculateCustomerAcquisitionCost(deals, contacts) {
-  // Filter won deals
-const wonDeals = deals.filter(deal => deal.stage_c === 'closed-won');
-  
-  if (wonDeals.length === 0) {
-    return {
-      average: 0,
-      lowest: 0,
-      highest: 0,
-      trend: 0
+      current: currentRate,
+      trend,
+      monthly: monthlyData
     };
   }
 
-  // Calculate CAC based on deal values and conversion efficiency
-  // Using a simplified model: higher deal values = lower relative CAC
-  const cacValues = wonDeals.map(deal => {
-    // Base CAC calculation (simplified)
-const baseCac = Math.max(500, Math.min(5000, 10000 - (deal.value_c * 0.1)));
+  calculateLeadGeneration(contacts, deals, months) {
+    const monthlyData = months.map(month => {
+      const monthStart = startOfMonth(month);
+      const monthEnd = endOfMonth(month);
+      
+      // Filter contacts for this month using database field names
+      const monthContacts = contacts.filter(contact => {
+        if (!contact.CreatedAt) return false;
+        const contactDate = parseISO(contact.CreatedAt);
+        return contactDate >= monthStart && contactDate <= monthEnd;
+      });
+      
+      // Qualified leads are contacts with associated deals
+      const qualifiedLeads = contacts.filter(contact => {
+        if (!contact.CreatedAt) return false;
+        const contactDate = parseISO(contact.CreatedAt);
+        const hasDeals = deals.some(deal => deal.ContactId?.Id === contact.Id);
+        return contactDate >= monthStart && contactDate <= monthEnd && hasDeals;
+      }).length;
+      
+      return {
+        month: format(month, 'yyyy-MM-dd'),
+        newLeads: monthContacts.length,
+        qualifiedLeads
+      };
+    });
     
-    // Adjust based on deal probability (higher probability = lower CAC)
-    const probabilityFactor = deal.probability_c / 100;
-    const adjustedCac = baseCac * (1.5 - probabilityFactor);
+    const totalNewLeads = monthlyData.reduce((sum, month) => sum + month.newLeads, 0);
+    const averageLeads = Math.round(totalNewLeads / months.length);
     
-    return Math.round(adjustedCac);
-  });
-
-  const average = Math.round(cacValues.reduce((sum, cac) => sum + cac, 0) / cacValues.length);
-  const lowest = Math.min(...cacValues);
-  const highest = Math.max(...cacValues);
-
-  // Calculate trend (comparing first half vs second half of won deals)
-  const midPoint = Math.floor(cacValues.length / 2);
-  const firstHalf = cacValues.slice(0, midPoint);
-  const secondHalf = cacValues.slice(midPoint);
-  
-  if (firstHalf.length === 0 || secondHalf.length === 0) {
-    return { average, lowest, highest, trend: 0 };
+    // Calculate trend
+    const recent = monthlyData.slice(-2);
+    const trend = recent.length === 2 ? 
+      ((recent[1].newLeads - recent[0].newLeads) / recent[0].newLeads * 100) : 0;
+    
+    return {
+      monthlyAverage: averageLeads,
+      trend: parseFloat(trend.toFixed(1)),
+      monthly: monthlyData
+    };
   }
 
-  const firstHalfAvg = firstHalf.reduce((sum, cac) => sum + cac, 0) / firstHalf.length;
-  const secondHalfAvg = secondHalf.reduce((sum, cac) => sum + cac, 0) / secondHalf.length;
-  const trend = ((secondHalfAvg - firstHalfAvg) / firstHalfAvg) * 100;
-
-  return {
-    average,
-    lowest,
-    highest,
-    trend: parseFloat(trend.toFixed(2))
-  };
-}
-
-function calculatePipelineAnalysis(deals) {
-  // Group deals by stage
-const stageGroups = deals.reduce((acc, deal) => {
-    if (deal.stage_c !== 'closed-lost') {
-      if (!acc[deal.stage_c]) {
-        acc[deal.stage_c] = { count: 0, value: 0 };
-      }
-      acc[deal.stage_c].count++;
-      acc[deal.stage_c].value += deal.value_c;
+  calculateCustomerAcquisitionCost(deals, contacts) {
+    // Calculate CAC based on deal values using database field names
+    const wonDeals = deals.filter(deal => deal.Stage === 'closed-won');
+    
+    if (wonDeals.length === 0) {
+      return {
+        average: 0,
+        lowest: 0,
+        highest: 0,
+        trend: 0
+      };
     }
-    return acc;
-  }, {});
-
-  const byStage = Object.entries(stageGroups).map(([stage, data]) => ({
-    stage,
-    count: data.count,
-    value: data.value
-  }));
-
-  const totalValue = byStage.reduce((sum, stage) => sum + stage.value, 0);
-  const activeDeals = byStage.reduce((sum, stage) => sum + stage.count, 0);
-
-  return {
-    byStage,
-    totalValue,
-    activeDeals
-  };
-}
-
-function calculateRevenueMetrics(deals, months) {
-const wonDeals = deals.filter(deal => deal.stage_c === 'closed-won');
-  
-  const monthly = months.map(month => {
-    const monthStart = startOfMonth(month);
-    const monthEnd = endOfMonth(month);
     
-    // Revenue from deals closed in this month
-    const monthRevenue = wonDeals
-.filter(deal => {
-        const closedDate = parseISO(deal.expected_close_date_c);
-        return closedDate >= monthStart && closedDate <= monthEnd;
-      })
-.reduce((sum, deal) => sum + deal.value_c, 0);
+    const cacValues = wonDeals.map(deal => {
+      // Simulate CAC calculation based on deal value
+      const baseCac = Math.max(500, Math.min(5000, 10000 - (deal.Amount * 0.1)));
+      return Math.round(baseCac + (Math.random() * 1000 - 500)); // Add some variance
+    });
+    
+    const average = Math.round(cacValues.reduce((sum, cac) => sum + cac, 0) / cacValues.length);
+    const lowest = Math.min(...cacValues);
+    const highest = Math.max(...cacValues);
+    
+    // Calculate trend (simulate based on recent performance)
+    const recentCacs = cacValues.slice(-Math.min(5, cacValues.length));
+    const olderCacs = cacValues.slice(0, Math.max(1, cacValues.length - 5));
+    
+    const recentAvg = recentCacs.reduce((sum, cac) => sum + cac, 0) / recentCacs.length;
+    const olderAvg = olderCacs.reduce((sum, cac) => sum + cac, 0) / olderCacs.length;
+    const trend = olderAvg > 0 ? ((recentAvg - olderAvg) / olderAvg * 100) : 0;
     
     return {
-      month: format(month, 'yyyy-MM-dd'),
-      revenue: monthRevenue
+      average,
+      lowest,
+      highest,
+      trend: parseFloat(trend.toFixed(1))
     };
-  });
+  }
 
-  const totalRevenue = monthly.reduce((sum, month) => sum + month.revenue, 0);
-  const averageMonthlyRevenue = Math.round(totalRevenue / monthly.length);
+  calculatePipelineAnalysis(deals) {
+    // Group deals by stage, excluding closed-lost using database field names
+    const stageGroups = deals.reduce((acc, deal) => {
+      if (deal.Stage !== 'closed-lost') {
+        if (!acc[deal.Stage]) {
+          acc[deal.Stage] = { count: 0, value: 0 };
+        }
+        acc[deal.Stage].count++;
+        acc[deal.Stage].value += deal.Amount;
+      }
+      return acc;
+    }, {});
+    
+    const byStage = Object.entries(stageGroups).map(([stage, data]) => ({
+      stage,
+      count: data.count,
+      value: data.value
+    }));
+    
+    const totalValue = byStage.reduce((sum, stage) => sum + stage.value, 0);
+    const activeDeals = byStage.reduce((sum, stage) => sum + stage.count, 0);
+    
+    return {
+      byStage,
+      totalValue,
+      activeDeals
+    };
+  }
 
-  return {
-    monthly,
-    totalRevenue,
-    averageMonthlyRevenue
-  };
+  calculateRevenueMetrics(deals, months) {
+    // Calculate monthly revenue from closed-won deals using database field names
+    const wonDeals = deals.filter(deal => deal.Stage === 'closed-won');
+    
+    const monthlyData = months.map(month => {
+      const monthStart = startOfMonth(month);
+      const monthEnd = endOfMonth(month);
+      
+      const monthRevenue = wonDeals.reduce((sum, deal) => {
+        if (!deal.ExpectedCloseDate) return sum;
+        const closedDate = parseISO(deal.ExpectedCloseDate);
+        if (closedDate >= monthStart && closedDate <= monthEnd) {
+          return sum + deal.Amount;
+        }
+        return sum;
+      }, 0);
+      
+      return {
+        month: format(month, 'yyyy-MM-dd'),
+        revenue: monthRevenue
+      };
+    });
+    
+    const totalRevenue = monthlyData.reduce((sum, month) => sum + month.revenue, 0);
+    const averageMonthlyRevenue = totalRevenue / months.length;
+    
+    return {
+      monthly: monthlyData,
+      total: totalRevenue,
+      averageMonthly: Math.round(averageMonthlyRevenue)
+    };
+  }
 }
+
+export const reportsService = new ReportsService();

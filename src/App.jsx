@@ -1,9 +1,8 @@
 import React, { createContext, useEffect, useState } from "react";
-import { Route, BrowserRouter, Routes, useNavigate } from "react-router-dom";
+import { BrowserRouter, Route, Routes, useNavigate } from "react-router-dom";
 import { Provider, useDispatch, useSelector } from "react-redux";
 import { store } from "@/store/store";
 import { ToastContainer } from "react-toastify";
-import Companies from "@/components/pages/Companies";
 import PromptPassword from "@/components/pages/PromptPassword";
 import Callback from "@/components/pages/Callback";
 import Reports from "@/components/pages/Reports";
@@ -12,6 +11,7 @@ import ResetPassword from "@/components/pages/ResetPassword";
 import Dashboard from "@/components/pages/Dashboard";
 import Login from "@/components/pages/Login";
 import Deals from "@/components/pages/Deals";
+import Companies from "@/components/pages/Companies";
 import Signup from "@/components/pages/Signup";
 import Contacts from "@/components/pages/Contacts";
 import ErrorPage from "@/components/pages/ErrorPage";
@@ -32,7 +32,7 @@ function AppContent() {
   
   // Initialize ApperUI once when the app loads
   useEffect(() => {
-    const { ApperClient, ApperUI } = window.ApperSDK;
+const { ApperClient, ApperUI } = window.ApperSDK;
     
     const client = new ApperClient({
       apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
@@ -98,7 +98,7 @@ function AppContent() {
       onError: function(error) {
         console.error("Authentication failed:", error);
       }
-    });
+});
   }, []);// No props and state should be bound
   
   // Authentication methods to share via context
@@ -120,51 +120,65 @@ function AppContent() {
   if (!isInitialized) {
     return <div className="loading flex items-center justify-center p-6 h-full w-full"><svg className="animate-spin" xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" ><path d="M12 2v4"></path><path d="m16.2 7.8 2.9-2.9"></path><path d="M18 12h4"></path><path d="m16.2 16.2 2.9 2.9"></path><path d="M12 18v4"></path><path d="m4.9 19.1 2.9-2.9"></path><path d="M2 12h4"></path><path d="m4.9 4.9 2.9 2.9"></path></svg></div>;
   }
-
+  
   return (
     <AuthContext.Provider value={authMethods}>
-      <div className="min-h-screen bg-background">
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/callback" element={<Callback />} />
-          <Route path="/error" element={<ErrorPage />} />
-          <Route path="/prompt-password/:appId/:emailAddress/:provider" element={<PromptPassword />} />
-          <Route path="/reset-password/:appId/:fields" element={<ResetPassword />} />
-          <Route path="/*" element={
-            <Layout>
-              <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/contacts" element={<Contacts />} />
-                <Route path="/deals" element={<Deals />} />
-                <Route path="/activities" element={<Activities />} />
-<Route path="/companies" element={<Companies />} />
-                <Route path="/reports" element={<Reports />} />
-              </Routes>
-            </Layout>
-          } />
-        </Routes>
-        
-        <ToastContainer
-          position="top-right"
-          autoClose={3000}
-          hideProgressBar={false}
-          newestOnTop={false}
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-          className="z-50"
-        />
-      </div>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/callback" element={<Callback />} />
+        <Route path="/error" element={<ErrorPage />} />
+        <Route path="/prompt-password/:appId/:emailAddress/:provider" element={<PromptPassword />} />
+        <Route path="/reset-password/:appId/:fields" element={<ResetPassword />} />
+        <Route path="/*" element={<Layout>
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/contacts" element={<Contacts />} />
+            <Route path="/deals" element={<Deals />} />
+            <Route path="/activities" element={<Activities />} />
+            <Route path="/companies" element={<Companies />} />
+            <Route path="/reports" element={<Reports />} />
+          </Routes>
+        </Layout>} />
+      </Routes>
+      <ToastContainer />
     </AuthContext.Provider>
   );
 }
+// Don't render routes until initialization is complete
+  if (!isInitialized) {
+    return <div className="loading flex items-center justify-center p-6 h-full w-full"><svg className="animate-spin" xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" ><path d="M12 2v4"></path><path d="m16.2 7.8 2.9-2.9"></path><path d="M18 12h4"></path><path d="m16.2 16.2 2.9 2.9"></path><path d="M12 18v4"></path><path d="m4.9 19.1 2.9-2.9"></path><path d="M2 12h4"></path><path d="m4.9 4.9 2.9 2.9"></path></svg></div>;
+  }
+
+  return (
+    <AuthContext.Provider value={authMethods}>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/callback" element={<Callback />} />
+        <Route path="/error" element={<ErrorPage />} />
+        <Route path="/prompt-password/:appId/:emailAddress/:provider" element={<PromptPassword />} />
+        <Route path="/reset-password/:appId/:fields" element={<ResetPassword />} />
+        <Route path="/*" element={<Layout>
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/contacts" element={<Contacts />} />
+            <Route path="/deals" element={<Deals />} />
+            <Route path="/activities" element={<Activities />} />
+            <Route path="/companies" element={<Companies />} />
+            <Route path="/reports" element={<Reports />} />
+          </Routes>
+        </Layout>} />
+      </Routes>
+      <ToastContainer />
+    </AuthContext.Provider>
+  );
+}
+
 function App() {
   return (
     <Provider store={store}>
-<BrowserRouter>
+      <BrowserRouter>
         <AppContent />
       </BrowserRouter>
     </Provider>

@@ -1,8 +1,9 @@
 import React, { useContext } from "react";
-import { useSelector } from 'react-redux';
+import { useSelector } from "react-redux";
+import { AuthContext } from "@/App";
 import ApperIcon from "@/components/ApperIcon";
 import Button from "@/components/atoms/Button";
-import { AuthContext } from '@/App';
+
 const Header = ({ onMenuClick, title = "Dashboard" }) => {
   const { user } = useSelector((state) => state.user);
   const { logout } = useContext(AuthContext);
@@ -48,15 +49,14 @@ const Header = ({ onMenuClick, title = "Dashboard" }) => {
                 {user.firstName} {user.lastName}
               </span>
             )}
-            
             <Button
-              variant="ghost"
-              size="sm"
               onClick={handleLogout}
-              className="p-2 hover:bg-red-50 hover:text-red-600"
-              title="Logout"
+              variant="outline"
+              size="sm"
+              className="flex items-center space-x-2"
             >
               <ApperIcon name="LogOut" size={16} />
+              <span className="hidden sm:inline">Logout</span>
             </Button>
           </div>
         </div>
@@ -64,4 +64,5 @@ const Header = ({ onMenuClick, title = "Dashboard" }) => {
     </header>
   );
 };
+
 export default Header;
